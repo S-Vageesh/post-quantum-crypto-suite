@@ -1,6 +1,5 @@
 use pqc_rust::{
-    Kyber, Dilithium, Falcon, SphincsPlus,
-    KemAlgorithm, SigAlgorithm, Kem, DigitalSignature
+    DigitalSignature, Dilithium, Falcon, Kem, KemAlgorithm, Kyber, SigAlgorithm, SphincsPlus,
 };
 
 /// A simple seedable mock RNG implementing `RngCore` and `CryptoRng` for unit testing.
@@ -16,7 +15,10 @@ impl MockRng {
 
 impl rand_core::RngCore for MockRng {
     fn next_u32(&mut self) -> u32 {
-        self.state = self.state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        self.state = self
+            .state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (self.state >> 32) as u32
     }
 
@@ -46,7 +48,11 @@ impl rand_core::CryptoRng for MockRng {}
 #[test]
 fn test_kyber_flow() {
     let mut rng = MockRng::new(1);
-    let algorithms = [KemAlgorithm::Kyber512, KemAlgorithm::Kyber768, KemAlgorithm::Kyber1024];
+    let algorithms = [
+        KemAlgorithm::Kyber512,
+        KemAlgorithm::Kyber768,
+        KemAlgorithm::Kyber1024,
+    ];
 
     for algo in algorithms {
         let kyber = Kyber::new(algo).unwrap();
@@ -74,7 +80,11 @@ fn test_kyber_flow() {
 #[test]
 fn test_dilithium_flow() {
     let mut rng = MockRng::new(2);
-    let algorithms = [SigAlgorithm::Dilithium2, SigAlgorithm::Dilithium3, SigAlgorithm::Dilithium5];
+    let algorithms = [
+        SigAlgorithm::Dilithium2,
+        SigAlgorithm::Dilithium3,
+        SigAlgorithm::Dilithium5,
+    ];
     let message = b"Alice signs this post-quantum document.";
 
     for algo in algorithms {

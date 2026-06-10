@@ -1,5 +1,5 @@
-use crate::errors::PqcError;
 use crate::config::SigAlgorithm;
+use crate::errors::PqcError;
 use crate::sig::{DigitalSignature, PublicKey, SecretKey, Signature};
 use rand_core::{CryptoRng, RngCore};
 
@@ -12,10 +12,10 @@ impl SphincsPlus {
     /// Creates a new SPHINCS+ instance for the specified SPHINCS+ configuration.
     pub fn new(algorithm: SigAlgorithm) -> Result<Self, PqcError> {
         match algorithm {
-            SigAlgorithm::SphincsPlus128s | SigAlgorithm::SphincsPlus256s => {
-                Ok(Self { algorithm })
-            }
-            _ => Err(PqcError::InvalidConfig("Unsupported SPHINCS+ variant".to_string())),
+            SigAlgorithm::SphincsPlus128s | SigAlgorithm::SphincsPlus256s => Ok(Self { algorithm }),
+            _ => Err(PqcError::InvalidConfig(
+                "Unsupported SPHINCS+ variant".to_string(),
+            )),
         }
     }
 }
@@ -39,8 +39,12 @@ impl DigitalSignature for SphincsPlus {
         rng.fill_bytes(&mut sk_bytes);
 
         // Mark key type indicators in stub
-        if !pk_bytes.is_empty() { pk_bytes[0] = 0x50; }
-        if !sk_bytes.is_empty() { sk_bytes[0] = 0x51; }
+        if !pk_bytes.is_empty() {
+            pk_bytes[0] = 0x50;
+        }
+        if !sk_bytes.is_empty() {
+            sk_bytes[0] = 0x51;
+        }
 
         let pk = PublicKey::from_bytes(self.algorithm, pk_bytes)?;
         let sk = SecretKey::from_bytes(self.algorithm, sk_bytes)?;
@@ -55,7 +59,9 @@ impl DigitalSignature for SphincsPlus {
         rng: &mut R,
     ) -> Result<Signature, PqcError> {
         if secret_key.algorithm() != self.algorithm {
-            return Err(PqcError::InvalidConfig("Secret key algorithm mismatch".to_string()));
+            return Err(PqcError::InvalidConfig(
+                "Secret key algorithm mismatch".to_string(),
+            ));
         }
 
         let sig_len = self.algorithm.signature_len();
@@ -89,7 +95,9 @@ impl DigitalSignature for SphincsPlus {
         // Verify the deterministic tag
         for i in 0..std::cmp::min(sig_bytes.len(), msg_len) {
             if sig_bytes[i] != (message[i] ^ 0xCC) {
-                return Err(PqcError::VerificationError("Invalid signature tag mismatch".to_string()));
+                return Err(PqcError::VerificationError(
+                    "Invalid signature tag mismatch".to_string(),
+                ));
             }
         }
 

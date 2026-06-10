@@ -7,15 +7,17 @@
 //! This crate provides robust trait interfaces for general KEM and signature schemes,
 //! safe key handling via zeroization, configuration-based instantiation, and unified error handling.
 
-pub mod errors;
 pub mod config;
+pub mod errors;
 pub mod kem;
 pub mod sig;
 
 // Re-export core items for simpler usage
-pub use errors::PqcError;
 pub use config::{KemAlgorithm, SigAlgorithm};
-pub use kem::{Kem, PublicKey as KemPublicKey, SecretKey as KemSecretKey, Ciphertext, SharedSecret};
+pub use errors::PqcError;
+pub use kem::{
+    Ciphertext, Kem, PublicKey as KemPublicKey, SecretKey as KemSecretKey, SharedSecret,
+};
 pub use sig::{DigitalSignature, PublicKey as SigPublicKey, SecretKey as SigSecretKey, Signature};
 
 // Re-export algorithm implementations

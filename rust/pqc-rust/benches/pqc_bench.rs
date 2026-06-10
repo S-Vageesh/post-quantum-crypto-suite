@@ -1,7 +1,6 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use pqc_rust::{
-    Kyber, Dilithium, Falcon, SphincsPlus,
-    KemAlgorithm, SigAlgorithm, Kem, DigitalSignature
+    DigitalSignature, Dilithium, Falcon, Kem, KemAlgorithm, Kyber, SigAlgorithm, SphincsPlus,
 };
 
 /// A simple seedable mock RNG implementing `RngCore` and `CryptoRng` for benchmarking.
@@ -17,7 +16,10 @@ impl MockRng {
 
 impl rand_core::RngCore for MockRng {
     fn next_u32(&mut self) -> u32 {
-        self.state = self.state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        self.state = self
+            .state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (self.state >> 32) as u32
     }
 
@@ -47,7 +49,11 @@ impl rand_core::CryptoRng for MockRng {}
 fn bench_kem(c: &mut Criterion) {
     let mut group = c.benchmark_group("KEM");
     let mut rng = MockRng::new(123);
-    let algos = [KemAlgorithm::Kyber512, KemAlgorithm::Kyber768, KemAlgorithm::Kyber1024];
+    let algos = [
+        KemAlgorithm::Kyber512,
+        KemAlgorithm::Kyber768,
+        KemAlgorithm::Kyber1024,
+    ];
 
     for algo in algos {
         let kem = Kyber::new(algo).unwrap();
@@ -85,7 +91,11 @@ fn bench_sig(c: &mut Criterion) {
     let message = b"Benchmarking PQC digital signatures with standard input sizes.";
 
     // Dilithium
-    let dilithium_algos = [SigAlgorithm::Dilithium2, SigAlgorithm::Dilithium3, SigAlgorithm::Dilithium5];
+    let dilithium_algos = [
+        SigAlgorithm::Dilithium2,
+        SigAlgorithm::Dilithium3,
+        SigAlgorithm::Dilithium5,
+    ];
     for algo in dilithium_algos {
         let sig_scheme = Dilithium::new(algo).unwrap();
         let algo_name = format!("{:?}", algo);

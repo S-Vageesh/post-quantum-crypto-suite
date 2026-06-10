@@ -1,5 +1,5 @@
-use crate::errors::PqcError;
 use crate::config::SigAlgorithm;
+use crate::errors::PqcError;
 use crate::sig::{DigitalSignature, PublicKey, SecretKey, Signature};
 use rand_core::{CryptoRng, RngCore};
 
@@ -15,7 +15,9 @@ impl Dilithium {
             SigAlgorithm::Dilithium2 | SigAlgorithm::Dilithium3 | SigAlgorithm::Dilithium5 => {
                 Ok(Self { algorithm })
             }
-            _ => Err(PqcError::InvalidConfig("Unsupported Dilithium variant".to_string())),
+            _ => Err(PqcError::InvalidConfig(
+                "Unsupported Dilithium variant".to_string(),
+            )),
         }
     }
 }
@@ -39,8 +41,12 @@ impl DigitalSignature for Dilithium {
         rng.fill_bytes(&mut sk_bytes);
 
         // Mark key type indicators in stub
-        if !pk_bytes.is_empty() { pk_bytes[0] = 0xD1; }
-        if !sk_bytes.is_empty() { sk_bytes[0] = 0xD2; }
+        if !pk_bytes.is_empty() {
+            pk_bytes[0] = 0xD1;
+        }
+        if !sk_bytes.is_empty() {
+            sk_bytes[0] = 0xD2;
+        }
 
         let pk = PublicKey::from_bytes(self.algorithm, pk_bytes)?;
         let sk = SecretKey::from_bytes(self.algorithm, sk_bytes)?;
@@ -55,7 +61,9 @@ impl DigitalSignature for Dilithium {
         rng: &mut R,
     ) -> Result<Signature, PqcError> {
         if secret_key.algorithm() != self.algorithm {
-            return Err(PqcError::InvalidConfig("Secret key algorithm mismatch".to_string()));
+            return Err(PqcError::InvalidConfig(
+                "Secret key algorithm mismatch".to_string(),
+            ));
         }
 
         let sig_len = self.algorithm.signature_len();
@@ -89,7 +97,9 @@ impl DigitalSignature for Dilithium {
         // Verify the deterministic tag
         for i in 0..std::cmp::min(sig_bytes.len(), msg_len) {
             if sig_bytes[i] != (message[i] ^ 0xAA) {
-                return Err(PqcError::VerificationError("Invalid signature tag mismatch".to_string()));
+                return Err(PqcError::VerificationError(
+                    "Invalid signature tag mismatch".to_string(),
+                ));
             }
         }
 

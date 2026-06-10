@@ -1,6 +1,6 @@
 use pqc_rust::{
-    Kyber, Dilithium, Falcon, SphincsPlus,
-    KemAlgorithm, SigAlgorithm, Kem, DigitalSignature, PqcError
+    DigitalSignature, Dilithium, Falcon, Kem, KemAlgorithm, Kyber, PqcError, SigAlgorithm,
+    SphincsPlus,
 };
 
 /// A simple seedable mock RNG implementing `RngCore` and `CryptoRng`
@@ -17,7 +17,10 @@ impl MockRng {
 
 impl rand_core::RngCore for MockRng {
     fn next_u32(&mut self) -> u32 {
-        self.state = self.state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        self.state = self
+            .state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (self.state >> 32) as u32
     }
 
@@ -55,20 +58,29 @@ fn main() -> Result<(), PqcError> {
     println!("--- KEM: Kyber-768 Demo ---");
     let kem_algo = KemAlgorithm::Kyber768;
     let kyber = Kyber::new(kem_algo)?;
-    
+
     println!("1. Generating keypair...");
     let (pk, sk) = kyber.generate_keypair(&mut rng)?;
     println!("   Public Key Size: {} bytes", pk.as_bytes().len());
-    println!("   Secret Key Size: {} bytes (Memory scrubbed on Drop)", sk.expose_secret().len());
+    println!(
+        "   Secret Key Size: {} bytes (Memory scrubbed on Drop)",
+        sk.expose_secret().len()
+    );
 
     println!("2. Encapsulating shared secret (Alice)...");
     let (ct, ss_alice) = kyber.encapsulate(&pk, &mut rng)?;
     println!("   Ciphertext Size: {} bytes", ct.as_bytes().len());
-    println!("   Shared Secret (Alice): {:x?}...", &ss_alice.expose_secret()[0..8]);
+    println!(
+        "   Shared Secret (Alice): {:x?}...",
+        &ss_alice.expose_secret()[0..8]
+    );
 
     println!("3. Decapsulating shared secret (Bob)...");
     let ss_bob = kyber.decapsulate(&ct, &sk)?;
-    println!("   Shared Secret (Bob):   {:x?}...", &ss_bob.expose_secret()[0..8]);
+    println!(
+        "   Shared Secret (Bob):   {:x?}...",
+        &ss_bob.expose_secret()[0..8]
+    );
 
     assert_eq!(ss_alice.expose_secret(), ss_bob.expose_secret());
     println!("   Status: Success (Shared secrets match!)\n");

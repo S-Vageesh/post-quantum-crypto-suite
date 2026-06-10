@@ -1,7 +1,7 @@
-use crate::errors::PqcError;
 use crate::config::KemAlgorithm;
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use crate::errors::PqcError;
 use rand_core::{CryptoRng, RngCore};
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 pub mod kyber;
 
