@@ -2,8 +2,11 @@ use crate::errors::PqcError;
 use crate::config::KemAlgorithm;
 use crate::kem::{Kem, PublicKey, SecretKey, Ciphertext, SharedSecret};
 use rand_core::{CryptoRng, RngCore};
+use pqcrypto_traits::kem::{
+    PublicKey as _, SecretKey as _, Ciphertext as _, SharedSecret as _,
+};
 
-/// Implementation of the Kyber Key Encapsulation Mechanism (KEM).
+/// Implementation of the Kyber Key Encapsulation Mechanism (KEM) using the pqcrypto ecosystem.
 pub struct Kyber {
     algorithm: KemAlgorithm,
 }
@@ -26,21 +29,22 @@ impl Kem for Kyber {
 
     fn generate_keypair<R: RngCore + CryptoRng>(
         &self,
-        rng: &mut R,
+        _rng: &mut R,
     ) -> Result<(PublicKey, SecretKey), PqcError> {
-        let pk_len = self.algorithm.public_key_len();
-        let sk_len = self.algorithm.secret_key_len();
-
-        let mut pk_bytes = vec![0u8; pk_len];
-        let mut sk_bytes = vec![0u8; sk_len];
-
-        // Fill with random bytes to simulate key generation
-        rng.fill_bytes(&mut pk_bytes);
-        rng.fill_bytes(&mut sk_bytes);
-
-        // Mark key type indicators in stub
-        if !pk_bytes.is_empty() { pk_bytes[0] = 0xAB; }
-        if !sk_bytes.is_empty() { sk_bytes[0] = 0xCD; }
+        let (pk_bytes, sk_bytes) = match self.algorithm {
+            KemAlgorithm::Kyber512 => {
+                let (pk, sk) = pqcrypto_kyber::kyber512::keypair();
+                (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+            }
+            KemAlgorithm::Kyber768 => {
+                let (pk, sk) = pqcrypto_kyber::kyber768::keypair();
+                (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+            }
+            KemAlgorithm::Kyber1024 => {
+                let (pk, sk) = pqcrypto_kyber::kyber1024::keypair();
+                (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+            }
+        };
 
         let pk = PublicKey::from_bytes(self.algorithm, pk_bytes)?;
         let sk = SecretKey::from_bytes(self.algorithm, sk_bytes)?;
@@ -51,7 +55,7 @@ impl Kem for Kyber {
     fn encapsulate<R: RngCore + CryptoRng>(
         &self,
         public_key: &PublicKey,
-        rng: &mut R,
+        _rng: &mut R,
     ) -> Result<(Ciphertext, SharedSecret), PqcError> {
         if public_key.algorithm() != self.algorithm {
             return Err(PqcError::InvalidConfig(
@@ -59,17 +63,26 @@ impl Kem for Kyber {
             ));
         }
 
-        let ct_len = self.algorithm.ciphertext_len();
-        let ss_len = self.algorithm.shared_secret_len();
-
-        let mut ct_bytes = vec![0u8; ct_len];
-        rng.fill_bytes(&mut ct_bytes);
-
-        // Deterministic derivation from ciphertext to allow decapsulation stub to match
-        let mut ss_bytes = vec![0u8; ss_len];
-        for i in 0..ss_len {
-            ss_bytes[i] = ct_bytes[i] ^ 0x55;
-        }
+        let (ct_bytes, ss_bytes) = match self.algorithm {
+            KemAlgorithm::Kyber512 => {
+                let pk = pqcrypto_kyber::kyber512::PublicKey::from_bytes(public_key.as_bytes())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid public key bytes: {:?}", e)))?;
+                let (ss, ct) = pqcrypto_kyber::kyber512::encapsulate(&pk);
+                (ct.as_bytes().to_vec(), ss.as_bytes().to_vec())
+            }
+            KemAlgorithm::Kyber768 => {
+                let pk = pqcrypto_kyber::kyber768::PublicKey::from_bytes(public_key.as_bytes())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid public key bytes: {:?}", e)))?;
+                let (ss, ct) = pqcrypto_kyber::kyber768::encapsulate(&pk);
+                (ct.as_bytes().to_vec(), ss.as_bytes().to_vec())
+            }
+            KemAlgorithm::Kyber1024 => {
+                let pk = pqcrypto_kyber::kyber1024::PublicKey::from_bytes(public_key.as_bytes())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid public key bytes: {:?}", e)))?;
+                let (ss, ct) = pqcrypto_kyber::kyber1024::encapsulate(&pk);
+                (ct.as_bytes().to_vec(), ss.as_bytes().to_vec())
+            }
+        };
 
         let ct = Ciphertext::from_bytes(self.algorithm, ct_bytes)?;
         let ss = SharedSecret::from_bytes(self.algorithm, ss_bytes)?;
@@ -88,14 +101,32 @@ impl Kem for Kyber {
             ));
         }
 
-        let ss_len = self.algorithm.shared_secret_len();
-        let mut ss_bytes = vec![0u8; ss_len];
-
-        // Recompute the deterministic shared secret from ciphertext
-        let ct_bytes = ciphertext.as_bytes();
-        for i in 0..ss_len {
-            ss_bytes[i] = ct_bytes[i] ^ 0x55;
-        }
+        let ss_bytes = match self.algorithm {
+            KemAlgorithm::Kyber512 => {
+                let ct = pqcrypto_kyber::kyber512::Ciphertext::from_bytes(ciphertext.as_bytes())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid ciphertext bytes: {:?}", e)))?;
+                let sk = pqcrypto_kyber::kyber512::SecretKey::from_bytes(secret_key.expose_secret())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid secret key bytes: {:?}", e)))?;
+                let ss = pqcrypto_kyber::kyber512::decapsulate(&ct, &sk);
+                ss.as_bytes().to_vec()
+            }
+            KemAlgorithm::Kyber768 => {
+                let ct = pqcrypto_kyber::kyber768::Ciphertext::from_bytes(ciphertext.as_bytes())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid ciphertext bytes: {:?}", e)))?;
+                let sk = pqcrypto_kyber::kyber768::SecretKey::from_bytes(secret_key.expose_secret())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid secret key bytes: {:?}", e)))?;
+                let ss = pqcrypto_kyber::kyber768::decapsulate(&ct, &sk);
+                ss.as_bytes().to_vec()
+            }
+            KemAlgorithm::Kyber1024 => {
+                let ct = pqcrypto_kyber::kyber1024::Ciphertext::from_bytes(ciphertext.as_bytes())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid ciphertext bytes: {:?}", e)))?;
+                let sk = pqcrypto_kyber::kyber1024::SecretKey::from_bytes(secret_key.expose_secret())
+                    .map_err(|e| PqcError::SerializationError(format!("Invalid secret key bytes: {:?}", e)))?;
+                let ss = pqcrypto_kyber::kyber1024::decapsulate(&ct, &sk);
+                ss.as_bytes().to_vec()
+            }
+        };
 
         SharedSecret::from_bytes(self.algorithm, ss_bytes)
     }
