@@ -76,3 +76,4 @@ cargo run --example kyber_demo
 Current Stage: Kyber Integration Complete
 
 This repository is actively evolving toward a broader post-quantum cryptography toolkit.
+<img width="701" height="383" alt="image" src="https://github.com/user-attachments/assets/36ed00ed-bd2b-4cd2-a5d0-39daf8368c93" />
