@@ -1,79 +1,204 @@
-# Post-Quantum Cryptography Toolkit
+# Post-Quantum Cryptography Web Toolkit
 
-A Rust-based toolkit for experimenting with modern post-quantum cryptographic algorithms and building familiarity with NIST-standardized quantum-resistant primitives.
+An interactive web application for exploring post-quantum cryptography using CRYSTALS-Kyber, built with Rust and React.
 
 ## Overview
 
-This project explores practical post-quantum cryptography through a modular and extensible architecture. The current implementation integrates CRYSTALS-Kyber, a NIST-standardized Key Encapsulation Mechanism (KEM), using the pqcrypto ecosystem.
+This project demonstrates the practical workflow of a post-quantum Key Encapsulation Mechanism (KEM) using the NIST-standardized CRYSTALS-Kyber algorithm.
 
-The codebase is designed to allow future expansion to additional post-quantum algorithms such as Dilithium, Falcon, and SPHINCS+.
+The application allows users to:
+
+* Generate Kyber keypairs
+* Perform encapsulation
+* Perform decapsulation
+* Verify that two parties derive the same shared secret
+* Visualize the complete Alice-Bob communication workflow through a web interface
+
+The cryptographic operations are implemented in Rust using the pqcrypto ecosystem, while the frontend is built with React.
+
+---
+
+## Demo
+
+### Web Interface
+
+![Kyber Demo](docs/Dashboard.png)
+
+> Replace the image above with your best screenshot.
+
+### Demo Video
+
+Add your demo video link here:
+
+```text
+https://drive.google.com/file/d/13b1MeRVrWTf_HxLK7Xsqs1CtSZSQ3nAo/view?usp=drive_link
+```
+
+---
 
 ## Features
 
 ### Implemented
 
-* Modular cryptographic architecture in Rust
 * CRYSTALS-Kyber KEM integration
+* Kyber512 support
+* Kyber768 support
+* Kyber1024 support
 * Key generation
 * Encapsulation
 * Decapsulation
-* Shared secret verification example
-* Integration tests and example programs
-* Benchmarking infrastructure
+* Shared secret verification
+* Rust REST API backend
+* React frontend dashboard
+* Error handling and validation
+* Example programs
+* Integration tests
 
 ### Planned
 
 * Dilithium digital signatures
 * Falcon digital signatures
-* SPHINCS+ digital signatures
-* Performance benchmarking across algorithms
-* Additional cryptographic demonstrations
+* SPHINCS+ signatures
+* Benchmark visualizations
+* WebAssembly support
+* Performance comparison dashboard
 
-## Project Structure
+---
+
+## Architecture
 
 ```text
-src/
-├── kem/
-│   └── kyber.rs
+post-quantum-crypto-suite
+
+├── rust/
+│   └── pqc-rust/
+│       ├── src/
+│       │   ├── kem/
+│       │   │   └── kyber.rs
+│       │   ├── sig/
+│       │   ├── config.rs
+│       │   ├── errors.rs
+│       │   └── lib.rs
+│       │
+│       └── src/bin/
+│           └── server.rs
 │
-├── sig/
-│   ├── dilithium.rs
-│   ├── falcon.rs
-│   └── sphincs.rs
+├── web-ui/
+│   ├── src/
+│   └── public/
 │
-├── config.rs
-├── errors.rs
-├── lib.rs
-└── main.rs
+├── docs/
+├── benchmarks/
+└── examples/
 ```
 
-## Example
-
-Generate a keypair, perform encapsulation, and verify that both parties derive the same shared secret:
-
-```bash
-cargo run --example kyber_demo
-```
+---
 
 ## Technology Stack
 
+### Backend
+
 * Rust
+* Axum
+* Tokio
 * pqcrypto-kyber
 * pqcrypto-traits
-* Cargo
-* Git & GitHub
+* Serde
 
-## Learning Goals
+### Frontend
+
+* React
+* Vite
+* Axios
+* Tailwind CSS
+* Lucide React
+
+### Tooling
+
+* Cargo
+* Git
+* GitHub
+
+---
+
+## Running The Project
+
+### Backend
+
+```bash
+cd rust/pqc-rust
+cargo run --bin server
+```
+
+Backend runs on:
+
+```text
+http://localhost:8080
+```
+
+### Frontend
+
+```bash
+cd web-ui
+npm install
+npm run dev
+```
+
+Frontend runs on:
+
+```text
+http://localhost:5173
+```
+
+---
+
+## Example Workflow
+
+1. Generate Bob's keypair
+2. Share Bob's public key with Alice
+3. Alice encapsulates a shared secret
+4. Alice sends ciphertext to Bob
+5. Bob decapsulates the ciphertext
+6. Both parties obtain the same shared secret
+
+This demonstrates a complete post-quantum key establishment workflow.
+
+---
+
+## What I Learned
+
+This project helped me gain hands-on experience with:
 
 * Post-Quantum Cryptography
+* CRYSTALS-Kyber
 * Key Encapsulation Mechanisms (KEMs)
-* Secure software architecture
-* Rust cryptography ecosystem
-* Cryptographic API design
+* Rust development
+* REST API design
+* React frontend development
+* Frontend-backend integration
+* Git and GitHub workflows
+* Compiler-driven debugging
 
-## Status
+---
 
-Current Stage: Kyber Integration Complete
+## Current Status
 
-This repository is actively evolving toward a broader post-quantum cryptography toolkit.
-<img width="701" height="383" alt="image" src="https://github.com/user-attachments/assets/36ed00ed-bd2b-4cd2-a5d0-39daf8368c93" />
+### Completed
+
+* Rust architecture
+* Kyber integration
+* REST API backend
+* React frontend
+* End-to-end working demo
+
+### In Progress
+
+* Additional post-quantum algorithms
+* Advanced visualizations
+* Benchmarking dashboard
+
+---
+
+## Disclaimer
+
+This project is intended for educational and demonstration purposes. Production cryptographic systems should always rely on thoroughly reviewed and audited implementations.
