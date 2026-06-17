@@ -24,7 +24,6 @@ The cryptographic operations are implemented in Rust using the pqcrypto ecosyste
 
 ![Kyber Demo](docs/Dashboard.png)
 
-> Replace the image above with your best screenshot.
 
 ### Demo Video
 
